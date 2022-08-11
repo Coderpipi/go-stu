@@ -1,6 +1,8 @@
-package goroutine
+package main
 
-import "fmt"
+import (
+	"fmt"
+)
 
 func GetMsg(c <-chan int) {
 	msg := <-c

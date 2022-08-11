@@ -1,11 +1,11 @@
 package main
 
 import (
-	"awesomeProject/request"
 	"context"
 	"encoding/json"
 	"fmt"
 	"github.com/Shopify/sarama"
+	"go-stu/request"
 	"log"
 	"os"
 	"os/signal"
@@ -138,7 +138,6 @@ func SaramaConsumerGroup() {
 		if err != nil {
 			panic(err)
 		}
-		fmt.Println("Kfldfkdsl;f")
 	}
 }
 
@@ -225,7 +224,7 @@ ProducerLoop:
 		time.Sleep(2 * time.Second)
 		i++
 		str := new(string)
-		*str = "则是一张图片"
+		*str = "这是一张图片"
 		req1 := request.Request{
 			ID:      "1",
 			Type:    "JPEG",

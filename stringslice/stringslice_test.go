@@ -1,4 +1,4 @@
-package stringslice
+package main
 
 import (
 	"fmt"
@@ -12,7 +12,10 @@ type Cfg struct {
 
 func TestEnv(t *testing.T) {
 	var cfg Cfg
-	env.Parse(&cfg)
+	err := env.Parse(&cfg)
+	if err != nil {
+		return
+	}
 	fmt.Println(cfg)
 }
 

@@ -1,4 +1,4 @@
-package stringslice
+package main
 
 func StringSliceEqual(a, b []string) bool {
 	if len(a) != len(b) {
