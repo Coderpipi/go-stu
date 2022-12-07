@@ -2,7 +2,9 @@ package main
 
 import (
 	"fmt"
+	"runtime"
 	"time"
+	"unsafe"
 )
 
 type User struct {
@@ -15,14 +17,18 @@ type Order struct {
 	OrderPrice uint64
 }
 
+// Ticker 定时任务
 func Ticker() {
+	runtime.GOMAXPROCS(3)
 	ticker := time.NewTicker(time.Second)
 	i := 1
+	pointer := unsafe.Pointer(&i)
+	fmt.Println(pointer)
 Loop:
 	for {
 		select {
 		case <-ticker.C:
-			fmt.Printf("1s执行任务: %d\n", i)
+			fmt.Printf("每隔1s执行任务: %d\n", i)
 			if i == 3 {
 				break Loop
 			}
@@ -30,8 +36,9 @@ Loop:
 		}
 	}
 }
+
+// Timer 延时任务
 func Timer() {
-	// 延时任务
 	timer := time.NewTimer(3 * time.Second)
 	i := 1
 Loop:

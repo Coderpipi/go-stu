@@ -58,11 +58,10 @@ func SaramaConsumerGroup() {
 	// 监听消息队列, 消费消息
 	log.Println("ConsumerGroup Start")
 
-	//
+	// 定义主题
+	topics := []string{"topic_test1"}
+	handler := ConsumerGroup{}
 	for {
-		// 定义主题
-		topics := []string{"topic_test1"}
-		handler := ConsumerGroup{}
 
 		// 消费消息
 		err := consumerGroup.Consume(context.TODO(), topics, handler)
