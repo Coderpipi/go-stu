@@ -37,6 +37,8 @@ func TestR(t *testing.T) {
 }
 
 func TestASyncProducer(t *testing.T) {
-	go ASyncProducer()
-	SaramaConsumerGroup()
+	//ASyncProducer()
+	//SaramaConsumerGroup()
+	str := "123"
+	fmt.Println(str[:2])
 }

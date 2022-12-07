@@ -51,7 +51,7 @@ ProducerLoop:
 		time.Sleep(2 * time.Second)
 		i++
 		info := fmt.Sprintf("Message: %d", i)
-		message := &sarama.ProducerMessage{Topic: "topic_test1", Value: sarama.StringEncoder(info)}
+		message := &sarama.ProducerMessage{Topic: "products_update", Value: sarama.StringEncoder(info)}
 		// 开始发送消息
 		select {
 		// 发送一条消息到主题消息队列
