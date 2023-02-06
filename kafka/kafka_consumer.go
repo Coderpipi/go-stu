@@ -45,7 +45,7 @@ func SaramaConsumerGroup() {
 	config.Consumer.Offsets.Initial = sarama.OffsetNewest
 
 	// 创建ConsumerGroup
-	consumerGroup, err := sarama.NewConsumerGroup(strings.Split(common.Cfg.KafKaServer, ","), "test_group", config)
+	consumerGroup, err := sarama.NewConsumerGroup(strings.Split(common.Cfg.KafkaServer, ","), "test_group", config)
 	if err != nil {
 		log.Fatalln("cannot create ConsumerGroup")
 	}
@@ -76,7 +76,7 @@ func SaramaConsumerGroup() {
 
 // SaramaConsumer 消费者
 func SaramaConsumer() {
-	consumer, err := sarama.NewConsumer(strings.Split(common.Cfg.KafKaServer, ","), nil)
+	consumer, err := sarama.NewConsumer(strings.Split(common.Cfg.KafkaServer, ","), nil)
 	if err != nil {
 		// 关闭消费者
 		defer func() {

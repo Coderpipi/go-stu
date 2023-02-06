@@ -17,7 +17,7 @@ func ASyncProducer() {
 	config := sarama.NewConfig()
 	config.Producer.Return.Successes = true
 	config.Producer.Return.Errors = true
-	producer, err := sarama.NewAsyncProducer(strings.Split(common.Cfg.KafKaServer, ","), config)
+	producer, err := sarama.NewAsyncProducer(strings.Split(common.Cfg.KafkaServer, ","), config)
 	if err != nil {
 		panic(err)
 	}
@@ -70,7 +70,7 @@ ProducerLoop:
 
 // SyncProducerSelect 异步生产消息
 func SyncProducerSelect() {
-	producer, err := sarama.NewAsyncProducer(strings.Split(common.Cfg.KafKaServer, ","), nil)
+	producer, err := sarama.NewAsyncProducer(strings.Split(common.Cfg.KafkaServer, ","), nil)
 	if err != nil {
 		panic(err)
 	}
@@ -103,7 +103,7 @@ ProducerLoop:
 
 // SaramaProducer 同步生产模式
 func SaramaProducer() {
-	producer, err := sarama.NewSyncProducer(strings.Split(common.Cfg.KafKaServer, ","), nil)
+	producer, err := sarama.NewSyncProducer(strings.Split(common.Cfg.KafkaServer, ","), nil)
 	if err != nil {
 		log.Fatalln(err)
 	}
