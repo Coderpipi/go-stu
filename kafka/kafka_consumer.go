@@ -4,9 +4,11 @@ import (
 	"context"
 	"fmt"
 	"github.com/Shopify/sarama"
+	"go-stu/common"
 	"log"
 	"os"
 	"os/signal"
+	"strings"
 )
 
 type ConsumerGroup struct {
@@ -43,7 +45,7 @@ func SaramaConsumerGroup() {
 	config.Consumer.Offsets.Initial = sarama.OffsetNewest
 
 	// 创建ConsumerGroup
-	consumerGroup, err := sarama.NewConsumerGroup([]string{"106.52.172.56:9092"}, "test_group", config)
+	consumerGroup, err := sarama.NewConsumerGroup(strings.Split(common.Cfg.KafKaServer, ","), "test_group", config)
 	if err != nil {
 		log.Fatalln("cannot create ConsumerGroup")
 	}
@@ -74,7 +76,7 @@ func SaramaConsumerGroup() {
 
 // SaramaConsumer 消费者
 func SaramaConsumer() {
-	consumer, err := sarama.NewConsumer([]string{"106.52.172.56:9092"}, nil)
+	consumer, err := sarama.NewConsumer(strings.Split(common.Cfg.KafKaServer, ","), nil)
 	if err != nil {
 		// 关闭消费者
 		defer func() {

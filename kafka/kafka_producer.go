@@ -3,9 +3,11 @@ package main
 import (
 	"fmt"
 	"github.com/Shopify/sarama"
+	"go-stu/common"
 	"log"
 	"os"
 	"os/signal"
+	"strings"
 	"sync"
 	"time"
 )
@@ -15,7 +17,7 @@ func ASyncProducer() {
 	config := sarama.NewConfig()
 	config.Producer.Return.Successes = true
 	config.Producer.Return.Errors = true
-	producer, err := sarama.NewAsyncProducer([]string{"106.52.172.56:9092"}, config)
+	producer, err := sarama.NewAsyncProducer(strings.Split(common.Cfg.KafKaServer, ","), config)
 	if err != nil {
 		panic(err)
 	}
@@ -68,7 +70,7 @@ ProducerLoop:
 
 // SyncProducerSelect 异步生产消息
 func SyncProducerSelect() {
-	producer, err := sarama.NewAsyncProducer([]string{"106.52.107.56:9092"}, nil)
+	producer, err := sarama.NewAsyncProducer(strings.Split(common.Cfg.KafKaServer, ","), nil)
 	if err != nil {
 		panic(err)
 	}
@@ -101,7 +103,7 @@ ProducerLoop:
 
 // SaramaProducer 同步生产模式
 func SaramaProducer() {
-	producer, err := sarama.NewSyncProducer([]string{"106.52.107.56:9092"}, nil)
+	producer, err := sarama.NewSyncProducer(strings.Split(common.Cfg.KafKaServer, ","), nil)
 	if err != nil {
 		log.Fatalln(err)
 	}

@@ -3,5 +3,6 @@ package main
 import "fmt"
 
 func main() {
-	fmt.Println("Hello Go")
+	var arr []int = nil
+	fmt.Println(len(arr))
 }
