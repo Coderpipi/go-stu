@@ -14,10 +14,10 @@ var ownerResouces = []string{"product", "collection", "page", "shop"}
 func main() {
 	//owner_resource, namespace, meta_key, meta_type,
 	var keys [][]any
-	for i := 0; i < len(k); i++ {
+	for i := 0; i < 3; i++ {
 		id := time.Now().UnixMicro()
 		time.Sleep(1 * time.Microsecond)
-		storeId := 7127
+		storeId := 10234
 		ownerResource := "collection"
 		namespace := "custom"
 		metaName := fmt.Sprintf("%d_%s_%d", storeId, ownerResource, i)
@@ -43,7 +43,7 @@ func main() {
 }
 
 func func1(m map[string]string) {
-	for k, _ := range m {
+	for k := range m {
 		fmt.Printf("self::%s,\n", k)
 	}
 }
