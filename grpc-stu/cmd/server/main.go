@@ -31,10 +31,19 @@ func main() {
 
 func run(ctx context.Context) error {
 	grpcServer := grpc.NewServer()
-	helloService, todoService, streamingService := &hello.Service{}, todo.NewService(), &streaming.Service{}
+	helloService,
+		todoService,
+		streamingService,
+		fileService :=
+		&hello.Service{},
+		todo.NewService(),
+		&streaming.Service{},
+		&streaming.FileService{}
+
 	proto.RegisterHelloServiceServer(grpcServer, helloService)
 	proto.RegisterTodoServiceServer(grpcServer, todoService)
 	proto.RegisterStreamingServiceServer(grpcServer, streamingService)
+	proto.RegisterFileUploadServiceServer(grpcServer, fileService)
 
 	const addr = "50051"
 

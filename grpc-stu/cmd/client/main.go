@@ -5,6 +5,7 @@ import (
 	"errors"
 	"io"
 	"log"
+	"net/http"
 
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
@@ -23,7 +24,53 @@ func main() {
 	defer cli.Close()
 
 	// runTodo(ctx, cli)
-	runStream(ctx, cli)
+	// runStream(ctx, cli)
+	runDownloadFile(ctx, cli)
+}
+
+func runDownloadFile(ctx context.Context, cli *grpc.ClientConn) {
+	client := proto.NewFileUploadServiceClient(cli)
+
+	http.HandleFunc("/", downloadHandler(client))
+
+	log.Printf("strarting http server on address: %s", "8080")
+	if err := http.ListenAndServe(":8080", nil); err != nil {
+		log.Fatal(err)
+	}
+}
+
+func downloadHandler(client proto.FileUploadServiceClient) http.HandlerFunc {
+	return func(writer http.ResponseWriter, request *http.Request) {
+		// 初始化流
+		ctx := request.Context()
+		// 创建一个切片存储文件内容
+		stream, err := client.DownloadFile(ctx, &proto.DownloadFileRequest{Name: "/Users/pipi/GolandProjects/go-stu/grpc-stu/internal/streaming/1.png"})
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		var fileContent []byte
+
+		for {
+			res, err := stream.Recv()
+			if err != nil {
+				if errors.Is(err, io.EOF) {
+					break
+				}
+				http.Error(writer, err.Error(), http.StatusInternalServerError)
+				return
+			}
+
+			log.Println("chunk received form server")
+
+			fileContent = append(fileContent, res.GetContent()...)
+		}
+		log.Println("server stream done")
+		if _, err := writer.Write(fileContent); err != nil {
+			http.Error(writer, err.Error(), http.StatusInternalServerError)
+		}
+	}
+
 }
 
 func runTodo(ctx context.Context, cli *grpc.ClientConn) {

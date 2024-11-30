@@ -12,6 +12,29 @@ service StreamingService {
   rpc Echo(stream EchoRequest) returns (stream EchoResponse);
 }
 
+service FileUploadService {
+  rpc DownloadFile(DownloadFileRequest) returns (stream DownloadFileResponse);
+  rpc UploadFile(stream UploadFileRequest) returns (UploadFileResponse);
+}
+
+
+message DownloadFileRequest {
+  string name = 1;
+}
+
+message DownloadFileResponse {
+  bytes content = 1;
+}
+
+message UploadFileRequest {
+  bytes content = 1;
+}
+
+message UploadFileResponse {
+  string name = 1;
+}
+
+
 message EchoRequest {
   string message = 1;
 }
