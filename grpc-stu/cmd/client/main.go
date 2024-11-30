@@ -2,13 +2,15 @@ package main
 
 import (
 	"context"
+	"crypto/x509"
 	"errors"
 	"io"
 	"log"
 	"net/http"
+	"os"
 
 	"google.golang.org/grpc"
-	"google.golang.org/grpc/credentials/insecure"
+	"google.golang.org/grpc/credentials"
 	"google.golang.org/grpc/status"
 	"grpc-stu/proto"
 )
@@ -16,16 +18,37 @@ import (
 func main() {
 	ctx := context.Background()
 
-	cli, err := grpc.NewClient("localhost:50051", grpc.WithTransportCredentials(insecure.NewCredentials()))
+	certPool := x509.NewCertPool()
+	cert, err := os.ReadFile("/Users/pipi/GolandProjects/go-stu/grpc-stu/certs/ca.crt")
+	if err != nil {
+		log.Fatal(err)
+	}
+	if ok := certPool.AppendCertsFromPEM(cert); !ok {
+		log.Fatal("failed to append CA cert")
+	}
+
+	tlsCredentials := credentials.NewClientTLSFromCert(certPool, "")
+
+	cli, err := grpc.NewClient("localhost:50051", grpc.WithTransportCredentials(tlsCredentials))
 	if err != nil {
 		log.Fatal(err)
 	}
 
 	defer cli.Close()
-
+	runHello(ctx, cli)
 	// runTodo(ctx, cli)
 	// runStream(ctx, cli)
-	runDownloadFile(ctx, cli)
+	// runDownloadFile(ctx, cli)
+}
+
+func runHello(ctx context.Context, cli *grpc.ClientConn) {
+	client := proto.NewHelloServiceClient(cli)
+
+	hello, err := client.SayHello(ctx, &proto.SayHelloRequest{Name: "lbw"})
+	if err != nil {
+		log.Fatal(err)
+	}
+	log.Println(hello.GetMessage())
 }
 
 func runDownloadFile(ctx context.Context, cli *grpc.ClientConn) {

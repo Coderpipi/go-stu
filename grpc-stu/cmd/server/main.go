@@ -11,6 +11,7 @@ import (
 
 	"golang.org/x/sync/errgroup"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials"
 	"grpc-stu/internal/hello"
 	"grpc-stu/internal/streaming"
 	"grpc-stu/internal/todo"
@@ -30,7 +31,11 @@ func main() {
 }
 
 func run(ctx context.Context) error {
-	grpcServer := grpc.NewServer()
+	tlsCreadentials, err := credentials.NewServerTLSFromFile("/Users/pipi/GolandProjects/go-stu/grpc-stu/certs/server.crt", "/Users/pipi/GolandProjects/go-stu/grpc-stu/certs/server.key")
+	if err != nil {
+		return fmt.Errorf("failed to load tls credentials: %w", err)
+	}
+	grpcServer := grpc.NewServer(grpc.Creds(tlsCreadentials))
 	helloService,
 		todoService,
 		streamingService,
