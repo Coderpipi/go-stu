@@ -2,14 +2,14 @@ package main
 
 import (
 	"context"
+	"crypto/tls"
+	"crypto/x509"
 	"errors"
 	"fmt"
-	"log"
 	"log/slog"
 	"net"
 	"os"
 	"os/signal"
-	"time"
 
 	"golang.org/x/sync/errgroup"
 	"google.golang.org/grpc"
@@ -33,37 +33,28 @@ func main() {
 }
 
 func run(ctx context.Context) error {
-	tlsCredentials, err := credentials.NewServerTLSFromFile("/Users/pipi/GolandProjects/go-stu/grpc-stu/certs/server.crt", "/Users/pipi/GolandProjects/go-stu/grpc-stu/certs/server.key")
+	serverCert, err := tls.LoadX509KeyPair("/Users/pipi/GolandProjects/go-stu/grpc-stu/certs/server.crt", "/Users/pipi/GolandProjects/go-stu/grpc-stu/certs/server.key")
 	if err != nil {
-		return fmt.Errorf("failed to load tls credentials: %w", err)
+		return fmt.Errorf("failed to load tls certs: %w", err)
 	}
-	grpcServer := grpc.NewServer(grpc.Creds(tlsCredentials),
-		grpc.ChainUnaryInterceptor(
-			func(ctx context.Context, req any, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (resp any, err error) {
-				start := time.Now()
 
-				resp, err = handler(ctx, req)
+	caCert, err := os.ReadFile("/Users/pipi/GolandProjects/go-stu/grpc-stu/certs/ca.crt")
+	if err != nil {
+		return fmt.Errorf("failed load CA cert: %w", err)
+	}
 
-				duration := time.Since(start)
+	certPool := x509.NewCertPool()
+	if !certPool.AppendCertsFromPEM(caCert) {
+		return errors.New("failed to append CA cert to pool")
+	}
 
-				log.Printf("request %s took %s", info.FullMethod, duration)
+	tlsCredentials := credentials.NewTLS(&tls.Config{
+		Certificates: []tls.Certificate{serverCert},
+		ClientCAs:    certPool,
+		ClientAuth:   tls.RequireAndVerifyClientCert,
+	})
 
-				return resp, err
-			},
-			func(ctx context.Context, req any, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (resp any, err error) {
-				log.Printf("request received on server: %s", info.FullMethod)
-
-				resp, err = handler(ctx, req)
-
-				log.Printf("sending response: %s", info.FullMethod)
-
-				return resp, err
-			}),
-		grpc.StreamInterceptor(func(srv any, ss grpc.ServerStream, info *grpc.StreamServerInfo, handler grpc.StreamHandler) error {
-			err := handler(srv, ss)
-			return err
-		}),
-	)
+	grpcServer := grpc.NewServer(grpc.Creds(tlsCredentials))
 	helloService,
 		todoService,
 		streamingService,

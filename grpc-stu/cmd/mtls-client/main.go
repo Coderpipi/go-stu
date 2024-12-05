@@ -9,11 +9,9 @@ import (
 	"log"
 	"net/http"
 	"os"
-	"time"
 
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
-	"google.golang.org/grpc/metadata"
 	"google.golang.org/grpc/status"
 	"grpc-stu/proto"
 )
@@ -30,15 +28,10 @@ func main() {
 		log.Fatal("failed to append CA cert")
 	}
 
-	// tlsCredentials := credentials.NewClientTLSFromCert(certPool, "")
-	// 加载客户端证书
-
 	clientCert, err := tls.LoadX509KeyPair("/Users/pipi/GolandProjects/go-stu/grpc-stu/certs/client.crt", "/Users/pipi/GolandProjects/go-stu/grpc-stu/certs/client.key")
 	if err != nil {
 		log.Fatal(err)
 	}
-
-	// 增加证书配置
 
 	tlsConfig := &tls.Config{
 		Certificates: []tls.Certificate{clientCert},
@@ -47,76 +40,26 @@ func main() {
 
 	tlsCredentials := credentials.NewTLS(tlsConfig)
 
-	cli, err := grpc.NewClient("localhost:50051", grpc.WithTransportCredentials(tlsCredentials),
-		grpc.WithChainUnaryInterceptor(
-			func(ctx context.Context, method string, req, reply any, cc *grpc.ClientConn, invoker grpc.UnaryInvoker, opts ...grpc.CallOption) error {
-				start := time.Now()
-
-				err := invoker(ctx, method, req, reply, cc, opts...)
-
-				log.Printf("request %s took %s", method, time.Since(start))
-
-				return err
-			},
-			func(ctx context.Context, method string, req, reply any, cc *grpc.ClientConn,
-				invoker grpc.UnaryInvoker, opts ...grpc.CallOption) error {
-				log.Printf("send request to server: %s\n", method)
-
-				err := invoker(ctx, method, req, reply, cc, opts...)
-
-				log.Printf("response received from server: %s", method)
-
-				return err
-			}))
+	cli, err := grpc.NewClient("localhost:50051", grpc.WithTransportCredentials(tlsCredentials))
 	if err != nil {
 		log.Fatal(err)
 	}
 
 	defer cli.Close()
 	runHello(ctx, cli)
-	// runLongRunning(ctx, cli)
 	// runTodo(ctx, cli)
 	// runStream(ctx, cli)
 	// runDownloadFile(ctx, cli)
 }
 
-func runLongRunning(ctx context.Context, cli *grpc.ClientConn) {
-
-	ctx, cancel := context.WithTimeout(ctx, time.Second*1)
-	defer cancel()
-	client := proto.NewHelloServiceClient(cli)
-
-	longRunning, err := client.LongRunning(ctx, &proto.LongRunningRequest{})
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	log.Println(longRunning)
-}
-
 func runHello(ctx context.Context, cli *grpc.ClientConn) {
-	md := metadata.Pairs("x-request-id", "123456")
-	ctx = metadata.NewOutgoingContext(ctx, md)
-
-	var (
-		headers  = metadata.New(map[string]string{})
-		trailers = metadata.New(map[string]string{})
-	)
-
 	client := proto.NewHelloServiceClient(cli)
 
-	hello, err := client.SayHello(ctx, &proto.SayHelloRequest{Name: "lbw"},
-		grpc.Header(&headers),
-		grpc.Trailer(&trailers),
-		grpc.MaxCallRecvMsgSize(11),
-		grpc.MaxCallSendMsgSize(5),
-	)
+	hello, err := client.SayHello(ctx, &proto.SayHelloRequest{Name: "lbw"})
 	if err != nil {
 		log.Fatal(err)
 	}
 	log.Println(hello.GetMessage())
-	log.Printf("headers: %s\n", headers)
-	log.Printf("trailers: %s\n", trailers)
 }
 
 func runDownloadFile(ctx context.Context, cli *grpc.ClientConn) {

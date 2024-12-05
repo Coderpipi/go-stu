@@ -7,6 +7,16 @@ option go_package = "/proto";
 
 service HelloService {
   rpc SayHello(SayHelloRequest) returns (SayHelloResponse);
+  rpc LongRunning(LongRunningRequest) returns (LongRunningResponse);
+}
+
+
+message LongRunningRequest {
+
+}
+
+message LongRunningResponse {
+
 }
 
 message SayHelloRequest {

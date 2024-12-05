@@ -1,0 +1,29 @@
+syntax = "proto3";
+
+package interceptor;
+
+option go_package = "/proto";
+
+service InterceptorService {
+  rpc Unprotected(UnprotectedRequest) returns (UnprotectedResponse);
+  rpc Protected(ProtectedRequest) returns (ProtectedResponse);
+}
+
+
+message ProtectedRequest {
+
+}
+
+message ProtectedResponse {
+  string user_id = 1;
+}
+
+message UnprotectedRequest {
+
+}
+
+message UnprotectedResponse {
+
+}
+
+

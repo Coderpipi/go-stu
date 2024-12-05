@@ -1,6 +1,15 @@
 .PHONY: all
-all: proto-gen-todo proto-gen-streaming gen-certs
+all: proto-gen gen-certs
 
+
+.PHONY: proto-gen
+proto-gen: proto-gen-hello proto-gen-todo proto-gen-streaming proto-gen-interceptor
+
+.PHONY: proto-gen-hello
+proto-gen-hello:
+	protoc --go_out=. --go_opt=paths=source_relative \
+		--go-grpc_out=. --go-grpc_opt=paths=source_relative \
+		./proto/hello.proto
 
 .PHONY: proto-gen-todo
 proto-gen-todo:
@@ -8,10 +17,24 @@ proto-gen-todo:
 		--go-grpc_out=. --go-grpc_opt=paths=source_relative \
 		./proto/todo.proto
 
+.PHONY: proto-gen-streaming
 proto-gen-streaming:
 	protoc --go_out=. --go_opt=paths=source_relative \
     		--go-grpc_out=. --go-grpc_opt=paths=source_relative \
     		./proto/streaming.proto
+
+.PHONY: proto-gen-interceptor
+proto-gen-interceptor:
+	protoc --go_out=. --go_opt=paths=source_relative \
+        	--go-grpc_out=. --go-grpc_opt=paths=source_relative \
+        	./proto/interceptor.proto
+
+.PHONY: proto-gen-token
+proto-gen-token:
+	protoc --go_out=. --go_opt=paths=source_relative \
+        	--go-grpc_out=. --go-grpc_opt=paths=source_relative \
+        	./proto/token.proto
+
 
 .PHONY: gen-certs
 gen-certs: gen-ca-certs gen-server-certs gen-client-certs
