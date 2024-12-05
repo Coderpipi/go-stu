@@ -4,16 +4,14 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"log"
 	"log/slog"
 	"net"
 	"os"
 	"os/signal"
-	"time"
 
 	"golang.org/x/sync/errgroup"
 	"google.golang.org/grpc"
-	"google.golang.org/grpc/credentials"
+	"grpc-stu/internal/config"
 	"grpc-stu/internal/hello"
 	"grpc-stu/internal/streaming"
 	"grpc-stu/internal/todo"
@@ -33,36 +31,35 @@ func main() {
 }
 
 func run(ctx context.Context) error {
-	tlsCredentials, err := credentials.NewServerTLSFromFile("/Users/pipi/GolandProjects/go-stu/grpc-stu/certs/server.crt", "/Users/pipi/GolandProjects/go-stu/grpc-stu/certs/server.key")
-	if err != nil {
-		return fmt.Errorf("failed to load tls credentials: %w", err)
-	}
-	grpcServer := grpc.NewServer(grpc.Creds(tlsCredentials),
-		grpc.ChainUnaryInterceptor(
-			func(ctx context.Context, req any, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (resp any, err error) {
-				start := time.Now()
+	// tlsCredentials, err := credentials.NewServerTLSFromFile("/Users/pipi/GolandProjects/go-stu/grpc-stu/certs/server.crt", "/Users/pipi/GolandProjects/go-stu/grpc-stu/certs/server.key")
+	// if err != nil {
+	// 	return fmt.Errorf("failed to load tls credentials: %w", err)
+	// }
+	grpcServer := grpc.NewServer( /* grpc.ChainUnaryInterceptor(
+	func(ctx context.Context, req any, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (resp any, err error) {
+		start := time.Now()
 
-				resp, err = handler(ctx, req)
+		resp, err = handler(ctx, req)
 
-				duration := time.Since(start)
+		duration := time.Since(start)
 
-				log.Printf("request %s took %s", info.FullMethod, duration)
+		log.Printf("request %s took %s", info.FullMethod, duration)
 
-				return resp, err
-			},
-			func(ctx context.Context, req any, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (resp any, err error) {
-				log.Printf("request received on server: %s", info.FullMethod)
+		return resp, err
+	},
+	func(ctx context.Context, req any, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (resp any, err error) {
+		log.Printf("request received on server: %s", info.FullMethod)
 
-				resp, err = handler(ctx, req)
+		resp, err = handler(ctx, req)
 
-				log.Printf("sending response: %s", info.FullMethod)
+		log.Printf("sending response: %s", info.FullMethod)
 
-				return resp, err
-			}),
-		grpc.StreamInterceptor(func(srv any, ss grpc.ServerStream, info *grpc.StreamServerInfo, handler grpc.StreamHandler) error {
-			err := handler(srv, ss)
-			return err
-		}),
+		return resp, err
+	}),
+	grpc.StreamInterceptor(func(srv any, ss grpc.ServerStream, info *grpc.StreamServerInfo, handler grpc.StreamHandler) error {
+		err := handler(srv, ss)
+		return err
+	}),*/
 	)
 	helloService,
 		todoService,
@@ -78,12 +75,19 @@ func run(ctx context.Context) error {
 	proto.RegisterStreamingServiceServer(grpcServer, streamingService)
 	proto.RegisterFileUploadServiceServer(grpcServer, fileService)
 
-	const addr = "50051"
+	port, ok := os.LookupEnv("PORT")
+	if !ok {
+		port = "50051"
+	}
+	configService := config.NewService(port)
+	proto.RegisterConfigServiceServer(grpcServer, configService)
+
+	addr := fmt.Sprintf(":%s", port)
 
 	g, ctx := errgroup.WithContext(ctx)
 
 	g.Go(func() error {
-		lis, err := net.Listen("tcp", ":"+addr)
+		lis, err := net.Listen("tcp", addr)
 		if err != nil {
 			return fmt.Errorf("failed to listen on address: %w", err)
 		}

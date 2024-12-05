@@ -3,7 +3,7 @@ all: proto-gen gen-certs
 
 
 .PHONY: proto-gen
-proto-gen: proto-gen-hello proto-gen-todo proto-gen-streaming proto-gen-interceptor
+proto-gen: proto-gen-hello proto-gen-todo proto-gen-streaming proto-gen-interceptor proto-gen-token proto-gen-config
 
 .PHONY: proto-gen-hello
 proto-gen-hello:
@@ -35,6 +35,12 @@ proto-gen-token:
         	--go-grpc_out=. --go-grpc_opt=paths=source_relative \
         	./proto/token.proto
 
+.PHONY: proto-gen-config
+proto-gen-config:
+	protoc --go_out=. --go_opt=paths=source_relative \
+        	--go-grpc_out=. --go-grpc_opt=paths=source_relative \
+        	./proto/config.proto
+
 
 .PHONY: gen-certs
 gen-certs: gen-ca-certs gen-server-certs gen-client-certs
@@ -59,3 +65,10 @@ gen-client-certs:
 	openssl req -new -key certs/client.key -out certs/client.csr -subj "/CN=gRPC TLS Client Example"
 	echo "subjectAltName=DNS:localhost,IP:0.0.0.0,IP:127.0.0.1" > certs/client_extfile.cnf
 	openssl x509 -req -extfile certs/client_extfile.cnf -in certs/client.csr -CA certs/ca.crt -CAkey certs/ca.key -CAcreateserial -out certs/client.crt
+
+
+.PHONY: run-servers
+run-servers:
+	PORT=50051 go run cmd/server/main.go &
+	PORT=50052 go run cmd/server/main.go &
+	PORT=50053 go run cmd/server/main.go

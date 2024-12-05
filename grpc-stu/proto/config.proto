@@ -1,0 +1,36 @@
+syntax = "proto3";
+
+
+package config;
+
+option go_package = "/proto";
+
+service ConfigService {
+  rpc ConfigLongRunning (ConfigLongRunningRequest) returns (ConfigLongRunningResponse);
+  rpc Flaky(FlakyRequest) returns (FlakyResponse);
+  rpc GetServerAddress(GetServerAddressRequest) returns (GetServerAddressResponse);
+}
+
+message ConfigLongRunningRequest {
+
+}
+
+message ConfigLongRunningResponse {
+
+}
+
+message FlakyRequest {
+
+}
+
+message FlakyResponse {
+
+}
+
+message GetServerAddressRequest {
+
+}
+
+message GetServerAddressResponse {
+  string address = 1;
+}
