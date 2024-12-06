@@ -11,6 +11,7 @@ import (
 
 	"golang.org/x/sync/errgroup"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/reflection"
 	"grpc-stu/internal/config"
 	"grpc-stu/internal/hello"
 	"grpc-stu/internal/streaming"
@@ -21,7 +22,7 @@ import (
 func main() {
 	ctx, cancel := signal.NotifyContext(context.Background(), os.Interrupt, os.Kill)
 	defer cancel()
-	if err := run(ctx); err != nil && errors.Is(err, context.Canceled) {
+	if err := run(ctx); err != nil && !errors.Is(err, context.Canceled) {
 		slog.Error("error running application", slog.String("error", err.Error()))
 		os.Exit(1)
 	}
@@ -61,6 +62,7 @@ func run(ctx context.Context) error {
 		return err
 	}),*/
 	)
+	reflection.Register(grpcServer)
 	helloService,
 		todoService,
 		streamingService,
