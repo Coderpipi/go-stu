@@ -2,12 +2,13 @@ package main
 
 import (
 	"fmt"
-	"github.com/Shopify/sarama"
 	"log"
 	"os"
 	"os/signal"
 	"sync"
 	"time"
+
+	"github.com/IBM/sarama"
 )
 
 // ASyncProducer 异步生产者Goroutines

@@ -1,0 +1,6 @@
+kafka:
+  addr:
+    - 127.0.0.1:9092
+  msg-chan-size: 10000
+collect:
+  log-file-path: logs/s4.log
