@@ -1,0 +1,18 @@
+[
+  {
+    "path": "logs/web.log",
+    "topic": "web_log"
+  },
+  {
+    "path": "logs/pc.log",
+    "topic": "pc_log"
+  },
+  {
+    "path": "logs/mac.log",
+    "topic": "mac_log"
+  },
+  {
+    "path": "logs/linux.log",
+    "topic": "linux_log"
+  }
+]

@@ -3,17 +3,19 @@ package config
 import (
 	"fmt"
 
-	"github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
 )
 
-var Cfg *Config
+var (
+	Cfg *Config
+)
 
 type (
 	Config struct {
 		BasePath string `env:"BASE_PATH"`
 		Kafka    `yaml:"kafka" mapstructure:"kafka"`
 		Collect  `yaml:"collect" mapstructure:"collect"`
+		Etcd     `mapstructure:"etcd" yaml:"etcd"`
 	}
 
 	Kafka struct {
@@ -23,6 +25,11 @@ type (
 
 	Collect struct {
 		LogFilePath string `yaml:"log-file-path" mapstructure:"log-file-path"`
+	}
+
+	Etcd struct {
+		Addr       []string `mapstructure:"addr"`
+		CollectKey string   `mapstructure:"collect-key"`
 	}
 )
 
@@ -42,8 +49,6 @@ func InitConfig() error {
 	}
 
 	Cfg = cfg
-
-	logrus.Info(cfg)
 
 	return nil
 }

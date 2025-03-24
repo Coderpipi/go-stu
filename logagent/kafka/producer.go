@@ -1,6 +1,8 @@
 package kafka
 
 import (
+	"context"
+
 	"github.com/IBM/sarama"
 	"github.com/sirupsen/logrus"
 )
@@ -10,9 +12,12 @@ var (
 	MsgChan  chan *sarama.ProducerMessage
 )
 
-func SendMessage() {
+func SendMessage(ctx context.Context) {
 	for {
 		select {
+		case <-ctx.Done():
+			close(MsgChan)
+			return
 		case msg, ok := <-MsgChan:
 			if !ok {
 				return

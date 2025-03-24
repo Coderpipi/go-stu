@@ -2,17 +2,19 @@ package main
 
 import (
 	"context"
+	"errors"
+	"fmt"
 	"os"
-	"strings"
-	"time"
+	"os/signal"
 
-	"github.com/IBM/sarama"
 	"github.com/sirupsen/logrus"
-	"github.com/sourcegraph/conc"
 	"github.com/urfave/cli/v3"
+	"logagent/common"
 	"logagent/config"
+	"logagent/etcd"
 	"logagent/kafka"
 	"logagent/tailhandler"
+	"logagent/util"
 )
 
 func main() {
@@ -30,21 +32,21 @@ func main() {
 				Name:   "collect",
 				Usage:  "监听文件，开始收集日志",
 				Action: collectCommand,
-				Flags: []cli.Flag{
-					&cli.StringFlag{
-						Name:     "topic",
-						Usage:    "指定topic名称",
-						Value:    "log_collect",
-						Required: false,
-						OnlyOnce: true,
-					},
-				},
 			},
 		},
 	}
 
-	_ = app.Run(context.Background(), os.Args)
+	ctx, cancel := signal.NotifyContext(context.Background(), os.Interrupt, os.Kill)
+	defer cancel()
+	common.SG.Go(func() {
+		if err := app.Run(ctx, os.Args); err != nil &&
+			!errors.Is(err, context.Canceled) {
+			logrus.WithError(err).Error("run app error")
+		}
+	})
 
+	<-ctx.Done()
+	common.SG.Wait()
 }
 
 func collectCommand(ctx context.Context, command *cli.Command) error {
@@ -53,37 +55,34 @@ func collectCommand(ctx context.Context, command *cli.Command) error {
 		return err
 	}
 
-	if err := config.InitTail(); err != nil {
+	common.SG.Go(func() {
+		kafka.SendMessage(ctx)
+	})
+
+	localIP, err := util.GetOutBoundIP()
+	if err != nil {
 		return err
 	}
 
-	topic := command.String("topic")
+	collectKey := fmt.Sprintf(config.Cfg.CollectKey, localIP)
 
-	g := conc.WaitGroup{}
-
-	g.Go(kafka.SendMessage)
-
-	for {
-		select {
-		case <-ctx.Done():
-			close(kafka.MsgChan)
-			return ctx.Err()
-		case msg, ok := <-tailhandler.TailHandler.Lines:
-			if !ok {
-				logrus.WithError(msg.Err).Error("tail log err")
-				time.Sleep(time.Second)
-				continue
-			}
-
-			if len(strings.TrimSpace(msg.Text)) == 0 {
-				continue
-			}
-
-			logrus.WithField("msg", msg.Text).Info("read log from log file")
-
-			producerMsg := &sarama.ProducerMessage{Topic: topic, Value: sarama.StringEncoder(msg.Text)}
-			kafka.MsgChan <- producerMsg
-		}
-
+	if err := config.InitEtcd(); err != nil {
+		return err
 	}
+
+	conf, err := etcd.GetConf(collectKey)
+	if err != nil {
+		return err
+	}
+
+	// watch etcd conf
+	common.SG.Go(func() {
+		etcd.WatchConf(ctx, collectKey)
+	})
+
+	if err := tailhandler.InitTailHandler(ctx, conf); err != nil {
+		return err
+	}
+
+	return nil
 }
